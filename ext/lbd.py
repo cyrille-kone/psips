@@ -5,7 +5,9 @@ import cvxpy as cp
 from pareto_2d import PC2d
 from pareto_nd import PCnd
 from itertools import product
+from qpsolvers import solve_qp
 from utils import is_non_dominated
+
 __doc__ = r''' Compute $T^\star$, $w^\star$ and the best response for PSI by 
                solving QP problems in $\bR^d$ and $\bR^p$ '''
 def cpt_inf_non_ps(𝝻, 𝝨, ps, non_ps, d_vecs, w):
@@ -34,21 +36,23 @@ def cpt_inf_non_ps(𝝻, 𝝨, ps, non_ps, d_vecs, w):
         r''' solve the dual problem in $\bR^p$'''
         # arm $i$ is not in the ps
         # u a vector  of [d]^p fixed element of dvecs
-        y_i = [(𝝻[perm_ps[j]] - 𝝻[i]) @ e[u[j]] for j in range(p)]  # check access
+        y_i = np.array([(𝝻[perm_ps[j]] - 𝝻[i]) @ e[u[j]] for j in range(p)])  # check access
         M_u = np.sum([np.outer(e[u[j]], E[j]) for j in range(p)], 0)  # check access
         C_u = [np.outer(E[j], e[u[j]]) @ 𝝨 @ np.outer(e[u[j]], E[j]) for j in range(p)]  # check access
         𝝨_i = M_u.T @ 𝝨 @ M_u / w[i]  # check access
         𝝨_ps = np.sum([C_u[j] / w[perm_ps[j]] for j in range(p)], 0)  # check access
-        x = cp.Variable(p)
-        constraints = [x >= 0]
-        objective = cp.Minimize((1. / 2) * cp.quad_form(x, 𝝨_i + 𝝨_ps, True) - x.T @ y_i)
-        prob = cp.Problem(objective, constraints)
-        prob.solve()
-        𝝰 = x.value  # optimal dual variable
+        #x = cp.Variable(p)
+        #constraints = [x >= 0]
+        #objective = cp.Minimize((1. / 2) * cp.quad_form(x, 𝝨_i + 𝝨_ps, True) - x.T @ y_i)
+        #prob = cp.Problem(objective, constraints)
+        #prob.solve()
+        𝝰 = solve_qp(𝝨_i + 𝝨_ps, - y_i, G =-np.eye(p),h=np.zeros(p), solver="cvxopt") #x.value  # optimal dual variable
         # compute the primal (the best response) with KKT
         𝝺_i = 𝝻[i] + (1. / w[i]) * (𝝨 @ M_u) @ 𝝰
         𝝺_ps = [𝝻[perm_ps[j]] - (𝝰[j] / w[perm_ps[j]]) * 𝝨 @ e[u[j]] for j in range(p)]
-        return -prob.value, np.vstack([𝝺_i, 𝝺_ps]), (i, u)
+        prob = (0.5) * 𝝰.T @ (𝝨_i + 𝝨_ps) @ 𝝰 - 𝝰.T @ y_i
+        #return -prob.value, np.vstack([𝝺_i, 𝝺_ps]), (i, u)
+        return -prob , np.vstack([𝝺_i, 𝝺_ps]), (i, u)
 
     return min([solve_dual_non_ps(i, d_vec) for i in non_ps for d_vec in d_vecs], key=lambda x: x[0])
 
@@ -63,20 +67,22 @@ def cpt_inf_ps(𝝻, 𝝨, ps, w):
     :param w:  allocation vector
     :return: T_1^\star(\theta, w)^{-1}, the best response, (arm $i$ to remove, arm $j$ that dominate $i$)
     '''
-    # solve the dual problem using CVXOPT
+    # solve the dual problem using qpsolvers
+    d = np.shape(𝝨)[0]
     def solve_dual_ps(i, j):
         r'''Solve the dual problem in $\bR^d$'''
         # i, j are two arms in the ps
-        x = cp.Variable(𝝻.shape[1])
-        constraints = [x >= 0]
-        objective = cp.Minimize((1. / 2) * (1. / w[i] + 1. / w[j]) * cp.quad_form(x, 𝝨, True) - x.T @ (𝝻[i] - 𝝻[j]))
-        prob = cp.Problem(objective, constraints)
-        prob.solve()
-        𝝰 = x.value  # optimal dual variable
+        #x = cp.Variable(𝝻.shape[1])
+        #constraints = [x >= 0]
+        #objective = cp.Minimize((1. / 2) * (1. / w[i] + 1. / w[j]) * cp.quad_form(x, 𝝨, True) - x.T @ (𝝻[i] - 𝝻[j]))
+        #prob = cp.Problem(objective, constraints)
+        #prob.solve()
+        𝝰 =  solve_qp((1. / w[i] + 1. / w[j]) *𝝨 , -  (𝝻[i] - 𝝻[j]), G =-np.eye(d),h=np.zeros(d), solver="cvxopt") #x.value  # optimal dual variable
         # compute the primal (the best response) with KKT
         𝝺_i = 𝝻[i] - (1. / w[i]) * (𝝨 @ 𝝰)
         𝝺_j = 𝝻[j] + (1. / w[j]) * (𝝨 @ 𝝰)
-        return -prob.value, [𝝺_i, 𝝺_j], (i, j)
+        prob = (1. / 2) * (1. / w[i] + 1. / w[j]) * 𝝰.T @ 𝝨 @𝝰 - 𝝰.T@(𝝻[i] - 𝝻[j])
+        return -prob, [𝝺_i, 𝝺_j], (i, j)
 
     return min([solve_dual_ps(i, j) for i in ps for j in ps if i != j], key=lambda x: x[0])
 

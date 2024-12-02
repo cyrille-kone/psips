@@ -10,8 +10,8 @@ doing the gradient ascent on w.
 import numpy as np
 import tqdm
 
-from pareto_2d import PC2d
-from pareto_nd import PCnd
+from .pareto_2d import PC2d
+from .pareto_nd import PCnd
 import matplotlib.pyplot as plt
 #from random_cloud import *
 

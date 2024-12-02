@@ -1,0 +1,8 @@
+xtensor
+xtensor-blas
+openblas
+openmp
+seaborn
+numpy
+matplotlib
+cvxpy

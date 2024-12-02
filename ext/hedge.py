@@ -13,7 +13,7 @@ import tqdm
 from pareto_2d import PC2d
 from pareto_nd import PCnd
 import matplotlib.pyplot as plt
-from random_cloud import *
+#from random_cloud import *
 
 
 def hedge_step(w, grad, i, reg):
@@ -36,8 +36,8 @@ def hedge(μ, w, M, speedup=False):
 	return gs[-1], np.average(ws, axis=0), ds
 
 
-if __name__ == '__main__':
-	M, K, d = 1000, 10, 3
-	μ = draw_points((K,d), width=10.)
-	w = np.ones(K)/K
-	hedge(μ, w, M)
+#if __name__ == '__main__':
+#	M, K, d = 1000, 10, 3
+#	μ = draw_points((K,d), width=10.)
+#	w = np.ones(K)/K
+#	hedge(μ, w, M)

@@ -7,8 +7,7 @@ This program implements the 2d specific algorithm to learn the Pareto front in a
 Multi-Armed Bandits setting.
 '''
 import numpy as np
-
-from pareto_generic import GPC
+from .pareto_generic import GPC
 
 
 class PC2d(GPC):

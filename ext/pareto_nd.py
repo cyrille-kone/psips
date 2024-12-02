@@ -7,7 +7,7 @@ This programs implement a generic algorithm to identify the Pareto front in a
 Multi-Armed Bandits setting.
 '''
 import numpy as np
-from pareto_generic import GPC
+from .pareto_generic import GPC
 
 
 def update_graph(G, j, Δ):

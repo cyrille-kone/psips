@@ -2,11 +2,11 @@ import sys
 import argparse
 import numpy as np
 import cvxpy as cp
-from pareto_2d import PC2d
-from pareto_nd import PCnd
+from .pareto_2d import PC2d
+from .pareto_nd import PCnd
 from itertools import product
 from qpsolvers import solve_qp
-from utils import is_non_dominated
+from .utils import is_non_dominated
 
 __doc__ = r''' Compute $T^\star$, $w^\star$ and the best response for PSI by 
                solving QP problems in $\bR^d$ and $\bR^p$ '''

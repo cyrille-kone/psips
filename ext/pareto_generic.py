@@ -1,12 +1,12 @@
 r"""THIS FILE IS TAKEN FROM THE PUBLIC REPOSITORY @ https://github.com/elise-crepon/sequential-pareto-learning-experiments
-WITHOUT ANY MODIFICATION
+WITHOUT MAJOR MODIFICATION
 """
 '''
 This program implements common tools between the generic algorithm and the 2d
 specific one.
 '''
 import numpy as np
-from utils import is_non_dominated
+from .utils import is_non_dominated
 
 class GPC:
 	def __init__(self, μ):
